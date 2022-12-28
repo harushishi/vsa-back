@@ -9,7 +9,17 @@ type IUserLogged = {
     token?: string
 }
 
+type IUserProfile = {
+    username: string,
+    name: string,
+    pfp: string,
+    biography: string,
+    siteUrl: string,
+    location: string,
+}
+
 export {
     IRegisterUser,
-    IUserLogged
+    IUserLogged,
+    IUserProfile
 }

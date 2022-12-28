@@ -4,6 +4,25 @@ import { err_codes, msgs } from '../utils/err_handling';
 
 const UserServiceInstance = new UserService()
 
+const updateProfile = async (req: Request, res: Response) => {
+    const userId = Number(req.params.userId)
+    const payload = req.body
+
+    try {
+        await UserServiceInstance.updateProfile(userId, payload)
+        res.status(200).send()
+    } catch (error: any) {
+        if (error.message === msgs.username_taken) {
+            res.status(400).send(msgs.username_taken)
+        } else if (error.code === err_codes.not_found) {
+            res.status(404).send(msgs.user_not_found)
+        } else {
+            console.log(error)
+            res.status(500).send(error)
+        }
+    }
+}
+
 const follow = async (req: Request, res: Response) => {
     const userId = Number(req.params.userId)
     const followId = Number(req.params.followId)
@@ -55,5 +74,6 @@ const getUser = async (req: Request, res: Response) => {
 export {
     getUsers,
     getUser,
-    follow
+    follow,
+    updateProfile
 }
