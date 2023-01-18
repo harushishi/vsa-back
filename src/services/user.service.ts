@@ -2,8 +2,9 @@ import prisma from "../../client";
 import fs from "fs";
 import util from "util";
 import { BucketService } from "../../s3";
-import { IUserProfile } from "../utils/types";
-import { msgs } from "../utils/err_handling";
+import { ITokenDecoded, IUserProfile } from "../utils/types";
+import { msgs } from "../utils/messages";
+import jwt_decode from "jwt-decode";
 
 export class UserService {
   unlinkFile: (path: fs.PathLike) => Promise<void>;
@@ -14,8 +15,9 @@ export class UserService {
     this.S3 = new BucketService();
   }
 
-  async updateProfile(userId: number, payload: IUserProfile) {
+  async updateProfile(payload: IUserProfile, token: string) {
     const { username, name, pfp, biography, siteUrl, location } = payload;
+    const { userId }: ITokenDecoded = jwt_decode(token);
 
     try {
       const user = await prisma.user.findUniqueOrThrow({
@@ -69,7 +71,8 @@ export class UserService {
     }
   }
 
-  async follow(userId: number, followId: number) {
+  async follow(followId: number, token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
     try {
       const user = await prisma.user.findUniqueOrThrow({
         where: {

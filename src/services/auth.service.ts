@@ -2,7 +2,7 @@ import prisma from "../../client";
 import * as argon2 from "argon2";
 import * as jwt from "jsonwebtoken";
 import { IRegisterUser, IUserLogged } from "../utils/types";
-import { msgs } from "../utils/err_handling";
+import { msgs } from "../utils/messages";
 
 export class AuthService {
   constructor() {}
@@ -18,7 +18,7 @@ export class AuthService {
 
       if (await argon2.verify(foundUser.password!, user.password)) {
         delete foundUser.password;
-        foundUser.token = jwt.sign({ id: foundUser.id }, secret, {
+        foundUser.token = jwt.sign({ userId: foundUser.id }, secret, {
           expiresIn: "30000s",
         });
       } else {

@@ -9,15 +9,6 @@ export const validateProfile = [
   check("biography").exists().not().isEmpty(),
   check("siteUrl").exists().not().isEmpty(),
   check("location").exists().not().isEmpty(),
-  param("userId")
-    .exists()
-    .custom((v) => {
-      let value = Number(v);
-      if (Number.isNaN(value)) {
-        throw new Error("userId is not a number");
-      }
-      return true;
-    }),
   (req: Request, res: Response, next: NextFunction) => {
     validateResult(req, res, next);
   },

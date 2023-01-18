@@ -1,15 +1,15 @@
 import e, { Request, Response } from "express";
 import { UserService } from "../services/user.service";
-import { err_codes, msgs } from "../utils/err_handling";
+import { err_codes, msgs } from "../utils/messages";
 
 const UserServiceInstance = new UserService();
 
 const updateProfile = async (req: Request, res: Response) => {
-  const userId = Number(req.params.userId);
+  const token = req.headers["authorization"] || "";
   const payload = req.body;
 
   try {
-    await UserServiceInstance.updateProfile(userId, payload);
+    await UserServiceInstance.updateProfile(payload, token);
     res.status(200).send();
   } catch (error: any) {
     if (error.message === msgs.username_taken) {
@@ -24,11 +24,11 @@ const updateProfile = async (req: Request, res: Response) => {
 };
 
 const follow = async (req: Request, res: Response) => {
-  const userId = Number(req.params.userId);
+  const token = req.headers["authorization"] || "";
   const followId = Number(req.params.followId);
 
   try {
-    if (await UserServiceInstance.follow(userId, followId)) {
+    if (await UserServiceInstance.follow(followId, token)) {
       res.status(200).send(msgs.followed);
     } else {
       res.status(200).send(msgs.unfollowed);

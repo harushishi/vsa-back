@@ -13,6 +13,7 @@ export const msgs = {
   unfollowed: "User unfollowed",
   user_not_found: "User not found",
   post_not_found: "Post not found",
+  comment_not_found: "Comment not found",
   empty_post: "Post can't be empty",
   forbidden: "forbidden",
 };

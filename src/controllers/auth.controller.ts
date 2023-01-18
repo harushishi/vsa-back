@@ -1,6 +1,6 @@
 import e, { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
-import { err_codes, msgs } from "../utils/err_handling";
+import { err_codes, msgs } from "../utils/messages";
 import { IRegisterUser } from "../utils/types";
 
 class RegisterUserDTO {

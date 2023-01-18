@@ -32,7 +32,7 @@ type IComment = {
 };
 
 type ITokenDecoded = {
-  id: number;
+  userId: number;
   iat: number;
   exp: number;
 };
