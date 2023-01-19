@@ -23,6 +23,42 @@ const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
+const likePost = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+  const postId = Number(req.params.id);
+
+  try {
+    await UserServiceInstance.likePost(postId, token);
+    res.status(200).send();
+  } catch (error: any) {
+    if (error.message === msgs.user_not_found) {
+      res.status(404).send(msgs.user_not_found);
+    } else if (error.message === msgs.post_not_found) {
+      res.status(404).send(msgs.post_not_found);
+    } else {
+      res.status(500).send(error.message);
+    }
+  }
+};
+
+const likeComment = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+  const commentId = Number(req.params.id);
+
+  try {
+    await UserServiceInstance.likeComment(commentId, token);
+    res.status(200).send();
+  } catch (error: any) {
+    if (error.message === msgs.user_not_found) {
+      res.status(404).send(msgs.user_not_found);
+    } else if (error.message === msgs.comment_not_found) {
+      res.status(404).send(msgs.comment_not_found);
+    } else {
+      res.status(500).send(error.message);
+    }
+  }
+};
+
 const follow = async (req: Request, res: Response) => {
   const token = req.headers["authorization"] || "";
   const followId = Number(req.params.followId);
@@ -70,4 +106,4 @@ const getUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getUsers, getUser, follow, updateProfile };
+export { getUsers, getUser, follow, updateProfile, likePost, likeComment };

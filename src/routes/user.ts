@@ -4,10 +4,13 @@ import {
   getUser,
   follow,
   updateProfile,
+  likePost,
+  likeComment,
 } from "../controllers/user.controller";
 import { validateFollow } from "../validators/follow.dto";
 import { validateProfile } from "../validators/profile.dto";
 import { verifyToken } from "../middlewares/authorization";
+import { validateLike } from "../validators/like.dto";
 
 const userRouter = express.Router();
 
@@ -20,5 +23,7 @@ userRouter.post(
   validateProfile,
   updateProfile
 );
+userRouter.post("/like/post/:id", verifyToken, validateLike, likePost);
+userRouter.post("/like/comment/:id", verifyToken, validateLike, likeComment);
 
 export { userRouter };

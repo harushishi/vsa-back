@@ -15,6 +15,66 @@ export class UserService {
     this.S3 = new BucketService();
   }
 
+  async likeComment(commentId: number, token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
+
+    if (!(await this.userExists(userId))) {
+      throw new Error(msgs.user_not_found);
+    }
+
+    if (!(await this.commentExists(commentId))) {
+      throw new Error(msgs.comment_not_found);
+    }
+
+    const isLiked = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: Number(userId),
+      },
+      select: {
+        likedComments: {
+          where: {
+            id: Number(commentId),
+          },
+        },
+      },
+    });
+
+    if (isLiked.likedComments.length > 0) {
+      await this.dislike(userId, commentId, "comment");
+    } else {
+      await this.like(userId, commentId, "comment");
+    }
+  }
+
+  async likePost(postId: number, token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
+
+    if (!(await this.userExists(userId))) {
+      throw new Error(msgs.user_not_found);
+    }
+
+    if (!(await this.postExists(postId))) throw new Error(msgs.post_not_found);
+
+    const isLiked = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+      select: {
+        likedPosts: {
+          where: {
+            id: Number(postId),
+          },
+        },
+      },
+    });
+
+    if (isLiked.likedPosts.length > 0) {
+      await this.dislike(userId, postId, "post");
+    } else {
+      await this.like(userId, postId, "post");
+    }
+  }
+
   async updateProfile(payload: IUserProfile, token: string) {
     const { username, name, pfp, biography, siteUrl, location } = payload;
     const { userId }: ITokenDecoded = jwt_decode(token);
@@ -144,14 +204,14 @@ export class UserService {
     }
   }
 
-  //private methods
+  //    private methods     //
 
-  private async checkUsername(username: string, userId: any) {
+  private async checkUsername(username: string, userId: number) {
     try {
       const userProfile = await prisma.profile.findFirst({
         where: {
           NOT: {
-            userId: Number(userId),
+            userId: userId,
           },
           username: username,
         },
@@ -160,6 +220,120 @@ export class UserService {
       return userProfile !== null;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async userExists(userId: number) {
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (user == null) return false;
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async postExists(postId: number) {
+    try {
+      const post = await prisma.post.findFirst({
+        where: {
+          id: postId,
+        },
+      });
+
+      if (post == null) return false;
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async commentExists(commentId: number) {
+    try {
+      const comment = await prisma.comment.findFirst({
+        where: {
+          id: Number(commentId),
+        },
+      });
+
+      if (comment == null) return false;
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async like(userId: number, id: number, flag: string) {
+    if (flag === "post") {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          likedPosts: {
+            connect: [{ id: id }],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+    if (flag === "comment") {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          likedComments: {
+            connect: [{ id: id }],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+  }
+
+  async dislike(userId: number, id: number, flag: string) {
+    if (flag === "post") {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          likedPosts: {
+            disconnect: [{ id: id }],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
+    if (flag === "comment") {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          likedComments: {
+            disconnect: [{ id: id }],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
     }
   }
 }
