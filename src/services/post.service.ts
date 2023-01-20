@@ -6,6 +6,88 @@ import jwt_decode from "jwt-decode";
 export class PostService {
   constructor() {}
 
+  async getPosts() {
+    try {
+      const result = await prisma.post.findMany({});
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPostById(postId: number) {
+    try {
+      const result = await prisma.post.findUniqueOrThrow({
+        where: {
+          id: postId,
+        },
+        include: {
+          commentaries: {
+            select: {
+              id: true,
+              text: true,
+              imageUrl: true,
+              postId: true,
+              authorId: true,
+              likedBy: { select: { id: true } },
+            },
+          },
+          likedBy: { select: { id: true } },
+        },
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPostsFromFollows(token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
+
+    try {
+      const result = await prisma.follow.findMany({
+        where: {
+          followingId: userId,
+        },
+        select: {
+          followed: {
+            select: {
+              posts: {
+                where: {
+                  visibility: Number(0),
+                },
+                take: 10,
+                orderBy: { createdAt: "desc" },
+                include: {
+                  commentaries: {
+                    include: { likedBy: { select: { id: true } } },
+                  },
+                  likedBy: { select: { id: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      let allPosts: any[] = [];
+
+      result.forEach((item) => {
+        item.followed.posts.forEach((post) => {
+          allPosts.push(post);
+        });
+      });
+
+      allPosts = allPosts.sort(function (a, b) {
+        return b.createdAt - a.createdAt;
+      });
+
+      return allPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async createPost(payload: IPost, token: string) {
     const { userId }: ITokenDecoded = jwt_decode(token);
     const { text, imageUrl, videoUrl, tags } = payload;

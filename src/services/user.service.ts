@@ -2,9 +2,10 @@ import prisma from "../../client";
 import fs from "fs";
 import util from "util";
 import { BucketService } from "../../s3";
-import { ITokenDecoded, IUserProfile } from "../utils/types";
+import { ITokenDecoded, IUploadedFile, IUserProfile } from "../utils/types";
 import { msgs } from "../utils/messages";
 import jwt_decode from "jwt-decode";
+import sharp from "sharp";
 
 export class UserService {
   unlinkFile: (path: fs.PathLike) => Promise<void>;
@@ -15,63 +16,87 @@ export class UserService {
     this.S3 = new BucketService();
   }
 
-  async likeComment(commentId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+  async getUsers() {
+    try {
+      const result = await prisma.user.findMany({});
 
-    if (!(await this.userExists(userId))) {
-      throw new Error(msgs.user_not_found);
-    }
+      if (!result.length) {
+        throw new Error("No users found");
+      }
 
-    if (!(await this.commentExists(commentId))) {
-      throw new Error(msgs.comment_not_found);
-    }
-
-    const isLiked = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: Number(userId),
-      },
-      select: {
-        likedComments: {
-          where: {
-            id: Number(commentId),
-          },
-        },
-      },
-    });
-
-    if (isLiked.likedComments.length > 0) {
-      await this.dislike(userId, commentId, "comment");
-    } else {
-      await this.like(userId, commentId, "comment");
+      return result;
+    } catch (error) {
+      throw error;
     }
   }
 
-  async likePost(postId: number, token: string) {
+  async getUser(userId: number) {
+    try {
+      const result = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+      });
+
+      return result;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  async updatePfp(file: Express.Multer.File | undefined, token: string) {
+    const defaultPfp = "11c3a07db76d29cdf6238c9eef528ccfrs";
     const { userId }: ITokenDecoded = jwt_decode(token);
 
-    if (!(await this.userExists(userId))) {
-      throw new Error(msgs.user_not_found);
-    }
-
-    if (!(await this.postExists(postId))) throw new Error(msgs.post_not_found);
-
-    const isLiked = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: userId,
-      },
-      select: {
-        likedPosts: {
-          where: {
-            id: Number(postId),
-          },
+    try {
+      if (!file) {
+        throw new Error(msgs.no_file);
+      }
+      const profile = await prisma.profile.findFirst({
+        where: {
+          userId: Number(userId),
         },
-      },
-    });
+      });
 
-    if (isLiked.likedPosts.length > 0) {
-      await this.dislike(userId, postId, "post");
-    } else {
-      await this.like(userId, postId, "post");
+      if (!profile) {
+        await this.unlinkFile(`uploads/${file.filename}`);
+        throw new Error(msgs.profile_not_found);
+      }
+
+      await sharp(`uploads/${file.filename}`)
+        .resize(200, 200)
+        .toFile(`uploads/${file.filename}rs`);
+
+      const manageUpload = await this.S3.uploadFile(`${file.filename}rs`);
+
+      if (!manageUpload) {
+        await this.unlinkFile(`uploads/${file.filename}rs`);
+        await this.unlinkFile(file.path);
+        throw new Error(msgs.s3_problem);
+      }
+
+      const result = await manageUpload.promise();
+
+      await this.unlinkFile(`uploads/${file.filename}rs`);
+      await this.unlinkFile(file.path);
+
+      await prisma.profile.update({
+        where: {
+          userId: Number(userId),
+        },
+        data: {
+          pfp: result.Key,
+        },
+      });
+
+      if (profile.pfp !== defaultPfp) {
+        await this.S3.removeFile(profile.pfp!);
+      }
+
+      const imagePath = `/ avatars / ${result.Key}`;
+      return imagePath;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -176,31 +201,63 @@ export class UserService {
     }
   }
 
-  async getUsers() {
-    try {
-      const result = await prisma.user.findMany({});
+  async likeComment(commentId: number, token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
 
-      if (!result.length) {
-        throw new Error("No users found");
-      }
+    if (!(await this.userExists(userId))) {
+      throw new Error(msgs.user_not_found);
+    }
 
-      return result;
-    } catch (error) {
-      throw error;
+    if (!(await this.commentExists(commentId))) {
+      throw new Error(msgs.comment_not_found);
+    }
+
+    const isLiked = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: Number(userId),
+      },
+      select: {
+        likedComments: {
+          where: {
+            id: Number(commentId),
+          },
+        },
+      },
+    });
+
+    if (isLiked.likedComments.length > 0) {
+      await this.dislike(userId, commentId, "comment");
+    } else {
+      await this.like(userId, commentId, "comment");
     }
   }
 
-  async getUser(userId: number) {
-    try {
-      const result = await prisma.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-      });
+  async likePost(postId: number, token: string) {
+    const { userId }: ITokenDecoded = jwt_decode(token);
 
-      return result;
-    } catch (error: any) {
-      throw error;
+    if (!(await this.userExists(userId))) {
+      throw new Error(msgs.user_not_found);
+    }
+
+    if (!(await this.postExists(postId))) throw new Error(msgs.post_not_found);
+
+    const isLiked = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+      select: {
+        likedPosts: {
+          where: {
+            id: Number(postId),
+          },
+        },
+      },
+    });
+
+    if (isLiked.likedPosts.length > 0) {
+      await this.dislike(userId, postId, "post");
+    } else {
+      await this.like(userId, postId, "post");
     }
   }
 

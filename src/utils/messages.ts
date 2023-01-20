@@ -14,6 +14,9 @@ export const msgs = {
   user_not_found: "User not found",
   post_not_found: "Post not found",
   comment_not_found: "Comment not found",
+  profile_not_found: "Profile not found",
+  no_file: "File not uploaded",
   empty_post: "Post can't be empty",
   forbidden: "forbidden",
+  s3_problem: "S3 Problem",
 };

@@ -23,18 +23,16 @@ export class BucketService {
     try {
       const fileStream = fs.createReadStream(`uploads/${filename}`);
 
-      if (bucketName !== undefined && bucketName !== null) {
+      if (bucketName !== null && bucketName !== undefined) {
         const uploadParams: PutObjectRequest = {
-          Bucket: bucketName,
+          Bucket: bucketName!,
           Key: filename,
           Body: fileStream,
         };
 
-        return this.s3.upload(uploadParams).promise();
+        return this.s3.upload(uploadParams);
       }
-    } catch (error) {
-      return error;
-    }
+    } catch (error) {}
   }
 
   async getFileStream(fileKey: string) {

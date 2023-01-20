@@ -4,6 +4,18 @@ import { err_codes, msgs } from "../utils/messages";
 
 const UserServiceInstance = new UserService();
 
+const updatePfp = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+  const file = req.file;
+
+  try {
+    await UserServiceInstance.updatePfp(file, token);
+    res.status(200).send();
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+};
+
 const updateProfile = async (req: Request, res: Response) => {
   const token = req.headers["authorization"] || "";
   const payload = req.body;
@@ -12,13 +24,18 @@ const updateProfile = async (req: Request, res: Response) => {
     await UserServiceInstance.updateProfile(payload, token);
     res.status(200).send();
   } catch (error: any) {
-    if (error.message === msgs.username_taken) {
-      res.status(400).send(msgs.username_taken);
-    } else if (error.code === err_codes.not_found) {
-      res.status(404).send(msgs.user_not_found);
-    } else {
-      console.log(error);
-      res.status(500).send(error);
+    switch (error.message) {
+      case msgs.no_file:
+        res.status(400).send(msgs.no_file);
+        break;
+      case msgs.post_not_found:
+        res.status(404).send(msgs.profile_not_found);
+        break;
+      case msgs.forbidden:
+        res.status(500).send(msgs.s3_problem);
+        break;
+      default:
+        res.status(500).send(error.message);
     }
   }
 };
@@ -106,4 +123,12 @@ const getUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getUsers, getUser, follow, updateProfile, likePost, likeComment };
+export {
+  getUsers,
+  getUser,
+  follow,
+  updateProfile,
+  likePost,
+  likeComment,
+  updatePfp,
+};

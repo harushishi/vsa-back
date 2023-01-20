@@ -4,6 +4,37 @@ import { err_codes, msgs } from "../utils/messages";
 
 const PostServiceInstance = new PostService();
 
+const getPosts = async (req: Request, res: Response) => {
+  try {
+    const posts = await PostServiceInstance.getPosts();
+    res.status(200).send(posts);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+};
+
+const getPostById = async (req: Request, res: Response) => {
+  const postId = Number(req.params.postId);
+
+  try {
+    const post = await PostServiceInstance.getPostById(postId);
+    res.status(200).send(post);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+};
+
+const getPostsFromFollows = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+
+  try {
+    const posts = await PostServiceInstance.getPostsFromFollows(token);
+    res.status(200).send(posts);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+};
+
 const createPost = async (req: Request, res: Response) => {
   const token = req.headers["authorization"] || "";
   const payload = req.body;
@@ -92,4 +123,12 @@ const deleteComment = async (req: Request, res: Response) => {
   }
 };
 
-export { createPost, deletePost, commentPost, deleteComment };
+export {
+  createPost,
+  deletePost,
+  commentPost,
+  deleteComment,
+  getPostById,
+  getPostsFromFollows,
+  getPosts,
+};

@@ -1,3 +1,7 @@
+type IUploadedFile = {
+  path: string;
+};
+
 type IRegisterUser = {
   email: string;
   password: string;
@@ -44,4 +48,5 @@ export {
   IPost,
   IComment,
   ITokenDecoded,
+  IUploadedFile,
 };
