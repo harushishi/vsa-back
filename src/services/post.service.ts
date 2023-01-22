@@ -1,23 +1,14 @@
 import prisma from "../../client";
-import { IComment, IPost, ITokenDecoded } from "../utils/types";
+import { TComment, TPost, TTokenDecoded } from "../utils/types";
 import { msgs } from "../utils/messages";
 import jwt_decode from "jwt-decode";
 
 export class PostService {
   constructor() {}
 
-  async getPosts() {
-    try {
-      const result = await prisma.post.findMany({});
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  }
-
   async getPostById(postId: number) {
     try {
-      const result = await prisma.post.findUniqueOrThrow({
+      const posts = await prisma.post.findUniqueOrThrow({
         where: {
           id: postId,
         },
@@ -35,16 +26,47 @@ export class PostService {
           likedBy: { select: { id: true } },
         },
       });
-      return result;
+      return posts;
     } catch (error) {
       throw error;
     }
   }
 
-  async getPostsFromFollows(token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+  async getPosts(
+    page: number | undefined = 1,
+    limit: number | undefined = 5,
+    url: string
+  ) {
+    try {
+      const startIndex = (page - 1) * limit;
+      const paginatedPosts = await this.paginatePosts(page, limit, url);
+
+      console.log(page, limit);
+
+      const posts = await prisma.post.findMany({
+        skip: startIndex,
+        take: limit,
+      });
+
+      paginatedPosts.posts = posts;
+      return paginatedPosts;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPostsFromFollows(
+    page: number | undefined = 1,
+    limit: number | undefined = 5,
+    url: string,
+    token: string
+  ) {
+    const { userId }: TTokenDecoded = jwt_decode(token);
 
     try {
+      const startIndex = (page - 1) * limit;
+      const paginatedPosts = await this.paginatePosts(page, limit, url);
+
       const result = await prisma.follow.findMany({
         where: {
           followingId: userId,
@@ -88,8 +110,8 @@ export class PostService {
     }
   }
 
-  async createPost(payload: IPost, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+  async createPost(payload: TPost, token: string) {
+    const { userId }: TTokenDecoded = jwt_decode(token);
     const { text, imageUrl, videoUrl, tags } = payload;
 
     if (!text && !imageUrl && !videoUrl) {
@@ -118,7 +140,7 @@ export class PostService {
   }
 
   async deletePost(postId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
     try {
       const user = await prisma.user.findUnique({
         where: {
@@ -155,8 +177,8 @@ export class PostService {
     }
   }
 
-  async commentPost(postId: number, payload: IComment, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+  async commentPost(postId: number, payload: TComment, token: string) {
+    const { userId }: TTokenDecoded = jwt_decode(token);
     const { text, imageUrl } = payload;
     try {
       const user = await prisma.user.findUnique({
@@ -193,7 +215,7 @@ export class PostService {
   }
 
   async deleteComment(commentId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
     try {
       const user = await prisma.user.findUnique({
         where: {
@@ -228,5 +250,34 @@ export class PostService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // private methods
+
+  async paginatePosts(page: number, limit: number, url: string) {
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const results: any = {};
+
+    if (endIndex < (await prisma.post.count())) {
+      results.info = {
+        next: `${process.env.BASE_URL}/post${
+          !url.indexOf("page=")
+            ? `?page=${page}&limit=${limit}`
+            : `?page=${page + 1}&limit=${limit}`
+        }`,
+        limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.previous = {
+        prev: `${process.env.BASE_URL}/post?page=${page}&limit=${limit}`,
+        limit,
+      };
+    }
+
+    return results;
   }
 }

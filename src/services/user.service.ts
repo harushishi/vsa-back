@@ -2,7 +2,7 @@ import prisma from "../../client";
 import fs from "fs";
 import util from "util";
 import { BucketService } from "../../s3";
-import { ITokenDecoded, IUploadedFile, IUserProfile } from "../utils/types";
+import { TTokenDecoded, TUploadedFile, TUserProfile } from "../utils/types";
 import { msgs } from "../utils/messages";
 import jwt_decode from "jwt-decode";
 import sharp from "sharp";
@@ -46,7 +46,7 @@ export class UserService {
 
   async updatePfp(file: Express.Multer.File | undefined, token: string) {
     const defaultPfp = "11c3a07db76d29cdf6238c9eef528ccfrs";
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
 
     try {
       if (!file) {
@@ -100,9 +100,9 @@ export class UserService {
     }
   }
 
-  async updateProfile(payload: IUserProfile, token: string) {
+  async updateProfile(payload: TUserProfile, token: string) {
     const { username, name, pfp, biography, siteUrl, location } = payload;
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
 
     try {
       const user = await prisma.user.findUniqueOrThrow({
@@ -157,7 +157,7 @@ export class UserService {
   }
 
   async follow(followId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
     try {
       const user = await prisma.user.findUniqueOrThrow({
         where: {
@@ -202,7 +202,7 @@ export class UserService {
   }
 
   async likeComment(commentId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
 
     if (!(await this.userExists(userId))) {
       throw new Error(msgs.user_not_found);
@@ -233,7 +233,7 @@ export class UserService {
   }
 
   async likePost(postId: number, token: string) {
-    const { userId }: ITokenDecoded = jwt_decode(token);
+    const { userId }: TTokenDecoded = jwt_decode(token);
 
     if (!(await this.userExists(userId))) {
       throw new Error(msgs.user_not_found);

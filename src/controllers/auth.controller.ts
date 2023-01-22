@@ -1,13 +1,13 @@
 import e, { Request, Response } from "express";
-import { AuthService } from "../services/auth.service";
-import { err_codes, msgs } from "../utils/messages";
-import { IRegisterUser } from "../utils/types";
+import { AuthService } from "@services";
+import { err_codes, msgs } from "@utils/messages";
+import { TRegisterUser } from "@utils/types";
 
 class RegisterUserDTO {
   email;
   password;
 
-  constructor(data: IRegisterUser) {
+  constructor(data: TRegisterUser) {
     this.email = data.email;
     this.password = data.password;
   }

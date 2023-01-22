@@ -1,16 +1,16 @@
 import prisma from "../../client";
 import * as argon2 from "argon2";
 import * as jwt from "jsonwebtoken";
-import { IRegisterUser, IUserLogged } from "../utils/types";
+import { TRegisterUser, TUserLogged } from "../utils/types";
 import { msgs } from "../utils/messages";
 
 export class AuthService {
   constructor() {}
 
-  async login(user: IRegisterUser) {
+  async login(user: TRegisterUser) {
     try {
       const secret = process.env.JWT_SECRET ?? "";
-      let foundUser: IUserLogged = await prisma.user.findUniqueOrThrow({
+      let foundUser: TUserLogged = await prisma.user.findUniqueOrThrow({
         where: {
           email: user.email,
         },
@@ -31,7 +31,7 @@ export class AuthService {
     }
   }
 
-  async register(user: IRegisterUser) {
+  async register(user: TRegisterUser) {
     try {
       const hash = await argon2.hash(user.password);
 

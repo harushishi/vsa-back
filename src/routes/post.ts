@@ -1,23 +1,21 @@
 import express from "express";
-import {
-  commentPost,
-  createPost,
-  deletePost,
-  deleteComment,
-  getPostById,
-  getPostsFromFollows,
-  getPosts,
-} from "../controllers/post.controller";
+import { PostController } from "@controllers";
 import { verifyToken } from "../middlewares/authorization";
 
 const postRouter = express.Router();
 
-postRouter.get("/get/all", getPosts);
-postRouter.get("/get/id/:postId", getPostById);
-postRouter.get("/get/following", verifyToken, getPostsFromFollows);
-postRouter.post("/create/", verifyToken, createPost);
-postRouter.post("/delete/:postId", verifyToken, deletePost);
-postRouter.post("/comment/:postId", verifyToken, commentPost);
-postRouter.post("/comment/delete/:commentId", verifyToken, deleteComment);
+//controlar como quedaron las nuevas rutas.
+postRouter.get("/", PostController.getPosts);
+postRouter.get("/:postId", PostController.getPostById);
+postRouter.get("/following", verifyToken, PostController.getPostsFromFollows);
+postRouter.post("/", verifyToken, PostController.createPost);
+postRouter.delete("/:postId", verifyToken, PostController.deletePost);
+//podria separar los comentarios en un service/controller aparte.
+postRouter.post("/comment/:postId", verifyToken, PostController.commentPost);
+postRouter.delete(
+  "/comment/delete/:commentId",
+  verifyToken,
+  PostController.deleteComment
+);
 
 export { postRouter };

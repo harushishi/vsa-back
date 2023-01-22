@@ -1,6 +1,6 @@
 import e, { Request, Response } from "express";
-import { UserService } from "../services/user.service";
-import { err_codes, msgs } from "../utils/messages";
+import { UserService } from "@services";
+import { err_codes, msgs } from "@utils/messages";
 
 const UserServiceInstance = new UserService();
 

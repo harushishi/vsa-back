@@ -1,12 +1,17 @@
-import e, { Request, Response } from "express";
-import { PostService } from "../services/post.service";
-import { err_codes, msgs } from "../utils/messages";
+import { Request, Response } from "express";
+import { PostService } from "@services";
+import { err_codes, msgs } from "@utils/messages";
 
 const PostServiceInstance = new PostService();
 
 const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await PostServiceInstance.getPosts();
+    const page =
+      typeof req.query.page === "string" ? +req.query.page : undefined;
+    const limit =
+      typeof req.query.limit === "string" ? +req.query.limit : undefined;
+    const url = req.url;
+    const posts = await PostServiceInstance.getPosts(page, limit, url);
     res.status(200).send(posts);
   } catch (error: any) {
     res.status(500).send(error.message);
@@ -26,9 +31,18 @@ const getPostById = async (req: Request, res: Response) => {
 
 const getPostsFromFollows = async (req: Request, res: Response) => {
   const token = req.headers["authorization"] || "";
+  const page = typeof req.query.page === "string" ? +req.query.page : undefined;
+  const limit =
+    typeof req.query.limit === "string" ? +req.query.limit : undefined;
+  const url = req.url;
 
   try {
-    const posts = await PostServiceInstance.getPostsFromFollows(token);
+    const posts = await PostServiceInstance.getPostsFromFollows(
+      page,
+      limit,
+      url,
+      token
+    );
     res.status(200).send(posts);
   } catch (error: any) {
     res.status(500).send(error.message);

@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import jwt_decode from "jwt-decode";
 import * as jwt from "jsonwebtoken";
-import { ITokenDecoded } from "../utils/types";
 import { msgs } from "../utils/messages";
 
 function verifyToken(req: Request, res: Response, next: NextFunction) {

@@ -1,20 +1,28 @@
-type IUploadedFile = {
+import { Post } from "@prisma/client";
+
+type TPaginatedPosts = {
+  page: number;
+  limit: number;
+  posts: Post[];
+};
+
+type TUploadedFile = {
   path: string;
 };
 
-type IRegisterUser = {
+type TRegisterUser = {
   email: string;
   password: string;
 };
 
-type IUserLogged = {
+type TUserLogged = {
   email: string;
   id: number;
   password?: string;
   token?: string;
 };
 
-type IUserProfile = {
+type TUserProfile = {
   username: string;
   name: string;
   pfp: string;
@@ -23,30 +31,31 @@ type IUserProfile = {
   location: string;
 };
 
-type IPost = {
+type TPost = {
   text?: string;
   tags?: string;
   imageUrl?: string;
   videoUrl?: string;
 };
 
-type IComment = {
+type TComment = {
   text?: string;
   imageUrl?: string;
 };
 
-type ITokenDecoded = {
+type TTokenDecoded = {
   userId: number;
   iat: number;
   exp: number;
 };
 
 export {
-  IRegisterUser,
-  IUserLogged,
-  IUserProfile,
-  IPost,
-  IComment,
-  ITokenDecoded,
-  IUploadedFile,
+  TRegisterUser,
+  TUserLogged,
+  TUserProfile,
+  TPost,
+  TComment,
+  TTokenDecoded,
+  TUploadedFile,
+  TPaginatedPosts,
 };
