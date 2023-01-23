@@ -1,6 +1,6 @@
-##Video-sharing-app backend.
+## Video-sharing-app backend.
 
-###Backend for a social-network app. Mostly covers all basic functions such as:
+### Backend for a social-network app. Mostly covers all basic functions such as:
 
 - Login/register an account.
 - Auth via JWT tokens.
@@ -15,7 +15,7 @@
 - Feed made from your liked posts.
 - Paginating for all of this kind of stuff.
 
-###Would still like to do:
+### Would still like to do:
 
 - Private messaging between users w/ websockets.
 - Some sort of caching w/ Redis.
