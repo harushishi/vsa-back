@@ -19,4 +19,5 @@
 
 - Private messaging between users w/ websockets.
 - Some sort of caching w/ Redis.
+- Get better at testing and add proper testing to the project aside from having a postman collec.
 - A nice looking front-end for the project.
