@@ -1,9 +1,9 @@
 ## Video-sharing-app backend.
 
-### Backend for a social-network app. Made with Typescript, Nodejs, PostgreSQL w/ Prisma and S3.
+### Backend for a social network app. Made with Typescript, Nodejs, PostgreSQL w/ Prisma and S3.
 
 
-#### Mostly covers all basic functions such as:
+#### Mostly covers all basic functions a social network has such as:
 - Login/register an account.
 - Auth via JWT tokens.
 - Being able to update stuff of your own profile.
