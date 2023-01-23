@@ -4,18 +4,11 @@ import { verifyToken } from "../middlewares/authorization";
 
 const postRouter = express.Router();
 
-//controlar como quedaron las nuevas rutas.
 postRouter.get("/", PostController.getPosts);
-postRouter.get("/:postId", PostController.getPostById);
-postRouter.get("/following", verifyToken, PostController.getPostsFromFollows);
+postRouter.get("/:id", PostController.getPostById);
+//podria usarlo tambien para agregar por trending, user, etc
+postRouter.get("/by/:filter", verifyToken, PostController.getPostsByFilter);
 postRouter.post("/", verifyToken, PostController.createPost);
-postRouter.delete("/:postId", verifyToken, PostController.deletePost);
-//podria separar los comentarios en un service/controller aparte.
-postRouter.post("/comment/:postId", verifyToken, PostController.commentPost);
-postRouter.delete(
-  "/comment/delete/:commentId",
-  verifyToken,
-  PostController.deleteComment
-);
+postRouter.delete("/:id", verifyToken, PostController.deletePost);
 
 export { postRouter };

@@ -2,10 +2,11 @@ import prisma from "../../client";
 import fs from "fs";
 import util from "util";
 import { BucketService } from "../../s3";
-import { TTokenDecoded, TUploadedFile, TUserProfile } from "../utils/types";
+import { TTokenDecoded, TUserProfile } from "../utils/types";
 import { msgs } from "../utils/messages";
 import jwt_decode from "jwt-decode";
 import sharp from "sharp";
+import data from "../utils/data.json";
 
 export class UserService {
   unlinkFile: (path: fs.PathLike) => Promise<void>;
@@ -100,7 +101,7 @@ export class UserService {
     }
   }
 
-  async updateProfile(payload: TUserProfile, token: string) {
+  async createProfile(payload: TUserProfile, token: string) {
     const { username, name, pfp, biography, siteUrl, location } = payload;
     const { userId }: TTokenDecoded = jwt_decode(token);
 
@@ -117,23 +118,51 @@ export class UserService {
         },
       });
 
+      if (profile) {
+        throw new Error(msgs.has_profile);
+      }
+
       if (await this.checkUsername(username, userId)) {
         throw new Error(msgs.username_taken);
       }
 
-      if (!profile) {
-        const newProfile = await prisma.profile.create({
-          data: {
-            userId: Number(userId),
-            name: name,
-            username: username,
-            pfp: "11c3a07db76d29cdf6238c9eef528ccfrs",
-            biography: biography,
-            location: location,
-            siteUrl: siteUrl,
-          },
-        });
-        return newProfile;
+      const newProfile = await prisma.profile.create({
+        data: {
+          userId: Number(userId),
+          name: name,
+          username: username,
+          pfp: data.defaultPfpKey,
+          biography: biography,
+          location: location,
+          siteUrl: siteUrl,
+        },
+      });
+
+      return newProfile;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(payload: TUserProfile, token: string) {
+    const { username, name, pfp, biography, siteUrl, location } = payload;
+    const { userId }: TTokenDecoded = jwt_decode(token);
+
+    try {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+      });
+
+      const profile = await prisma.profile.findUniqueOrThrow({
+        where: {
+          userId: userId,
+        },
+      });
+
+      if (await this.checkUsername(username, userId)) {
+        throw new Error(msgs.username_taken);
       }
 
       const updatedProfile = await prisma.profile.update({

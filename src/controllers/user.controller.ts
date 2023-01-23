@@ -16,6 +16,24 @@ const updatePfp = async (req: Request, res: Response) => {
   }
 };
 
+const createProfile = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+  const payload = req.body;
+
+  try {
+    await UserServiceInstance.createProfile(payload, token);
+    res.status(200).send();
+  } catch (error: any) {
+    if (error.message === msgs.has_profile) {
+      res.status(401).send(msgs.has_profile);
+    } else if (error.message === msgs.username_taken) {
+      res.status(401).send(msgs.username_taken);
+    } else {
+      res.status(500).send(error.message);
+    }
+  }
+};
+
 const updateProfile = async (req: Request, res: Response) => {
   const token = req.headers["authorization"] || "";
   const payload = req.body;
@@ -24,54 +42,42 @@ const updateProfile = async (req: Request, res: Response) => {
     await UserServiceInstance.updateProfile(payload, token);
     res.status(200).send();
   } catch (error: any) {
+    if (error.message === err_codes.not_found) {
+      res.status(404).send(error.message);
+    } else if (error.message === msgs.username_taken) {
+      res.status(401).send(msgs.username_taken);
+    } else {
+      res.status(500).send(error.message);
+    }
+  }
+};
+
+const like = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"] || "";
+  const id = Number(req.params.id);
+  const target = req.params.target;
+
+  try {
+    if (target === "post") {
+      await UserServiceInstance.likePost(id, token);
+      res.status(200).send();
+    } else if (target === "comment") {
+      await UserServiceInstance.likeComment(id, token);
+      res.status(200).send();
+    }
+  } catch (error: any) {
     switch (error.message) {
-      case msgs.no_file:
-        res.status(400).send(msgs.no_file);
+      case msgs.user_not_found:
+        res.status(404).send(msgs.user_not_found);
         break;
       case msgs.post_not_found:
-        res.status(404).send(msgs.profile_not_found);
+        res.status(404).send(msgs.post_not_found);
         break;
-      case msgs.forbidden:
-        res.status(500).send(msgs.s3_problem);
+      case msgs.comment_not_found:
+        res.status(404).send(msgs.comment_not_found);
         break;
       default:
         res.status(500).send(error.message);
-    }
-  }
-};
-
-const likePost = async (req: Request, res: Response) => {
-  const token = req.headers["authorization"] || "";
-  const postId = Number(req.params.id);
-
-  try {
-    await UserServiceInstance.likePost(postId, token);
-    res.status(200).send();
-  } catch (error: any) {
-    if (error.message === msgs.user_not_found) {
-      res.status(404).send(msgs.user_not_found);
-    } else if (error.message === msgs.post_not_found) {
-      res.status(404).send(msgs.post_not_found);
-    } else {
-      res.status(500).send(error.message);
-    }
-  }
-};
-
-const likeComment = async (req: Request, res: Response) => {
-  const token = req.headers["authorization"] || "";
-  const commentId = Number(req.params.id);
-
-  try {
-    await UserServiceInstance.likeComment(commentId, token);
-    res.status(200).send();
-  } catch (error: any) {
-    if (error.message === msgs.user_not_found) {
-      res.status(404).send(msgs.user_not_found);
-    } else if (error.message === msgs.comment_not_found) {
-      res.status(404).send(msgs.comment_not_found);
-    } else {
-      res.status(500).send(error.message);
     }
   }
 };
@@ -127,8 +133,8 @@ export {
   getUsers,
   getUser,
   follow,
-  updateProfile,
-  likePost,
-  likeComment,
+  createProfile,
+  like,
   updatePfp,
+  updateProfile,
 };

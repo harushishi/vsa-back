@@ -2,9 +2,7 @@ import prisma from "./client";
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { userRouter } from "./src/routes/user";
-import { authRouter } from "./src/routes/auth";
-import { postRouter } from "./src/routes/post";
+import { userRouter, authRouter, postRouter, commentRouter } from "@routes";
 
 dotenv.config();
 
@@ -19,6 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/post", postRouter);
+app.use("/api/comment", commentRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API live");
