@@ -1,7 +1,9 @@
 ## Video-sharing-app backend.
 
-### Backend for a social-network app. Mostly covers all basic functions such as:
+### Backend for a social-network app. Made with Typescript, Nodejs, PostgreSQL w/ Prisma and S3.
 
+
+#### Mostly covers all basic functions such as:
 - Login/register an account.
 - Auth via JWT tokens.
 - Being able to update stuff of your own profile.
@@ -15,8 +17,7 @@
 - Feed made from your liked posts.
 - Paginating for all of this kind of stuff.
 
-### Would still like to do:
-
+#### Would still like to do:
 - Private messaging between users w/ websockets.
 - Some sort of caching w/ Redis.
 - Get better at testing and add proper testing to the project aside from having a postman collec.
